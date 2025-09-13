@@ -18,6 +18,8 @@ return new class extends Migration
             $table->integer('number_of_invites')->nullable();
             $table->string('contact')->nullable();
             $table->string('email')->nullable();
+            $table->string('table_no')->nullable();
+            $table->string('qr_code')->nullable();
             $table->timestamps();
         });
     }

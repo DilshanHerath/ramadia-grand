@@ -13,5 +13,6 @@ class Invite extends Model
         'contact',
         'email',
         'table_no',
+        'qr_code',
     ];
 }
