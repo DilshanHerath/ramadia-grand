@@ -30,15 +30,24 @@
             font-size: 16px;
             margin-top: 15px;
         }
+
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('/fonts/Allura-Regular.ttf') format('ttf'),
+                url('/fonts/Allura-Regular.ttf') format('ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
     </style>
 </head>
 
 <body style="margin: 0;padding: 0;">
 
     <div
-        style="background-image:url('{{ public_path('storage/ticket_template.jpg') }}');width: 100%;background-repeat: no-repeat;background-position: center;height: 100%;background-size: cover;margin: 0;padding: 0">
+        style="background-image:url('{{ public_path('storage/Invitation.png') }}');width: 100%;background-repeat: no-repeat;background-position: center;height: 100%;background-size: cover;margin: 0;padding: 0">
         <div style="position: fixed;top:29%;z-index:200;width:100%">
-            <h2 style="font-size:25px;color:#b78339;text-align:center">
+            <h2
+                style="font-size:25px;color:#b78339;text-align:center;font-family: 'MyCustomFont', Allura-Regular;text-transform: capitalize!important;">
                 <strong>
                     @if ($invite->name != null)
                         {{ $invite->name }}

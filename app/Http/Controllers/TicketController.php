@@ -19,7 +19,7 @@ class TicketController extends Controller
         Storage::makeDirectory('public/qrcodes');
 
         // Get first 10 invites
-        $invites = Invite::whereBetween('id', [1, 200])->get();
+        $invites = Invite::whereBetween('id', [501, 580])->get();
 
         foreach ($invites as $invite) {
             $this->generateQR($invite);
@@ -68,7 +68,8 @@ class TicketController extends Controller
     public function generateFirstTenTickets()
     {
         try {
-            $invites = Invite::whereBetween('id', [1, 20])->get(); // first 10 for testing
+            // $invites = Invite::whereBetween('id', [571, 580])->get(); // first 10 for testing
+            $invites = Invite::where('id', 1)->get(); // first 10 for testing
 
             foreach ($invites as $invite) {
                 $this->createTicket($invite);
@@ -86,8 +87,12 @@ class TicketController extends Controller
             // Generate PDF
             $pdf = Pdf::loadView('ticket', compact('invite'))->setPaper('a4', 'portrait');
 
-            // Determine filename
+            // Sanitize filename
             $nameForFile = $invite->name ? $invite->name : 'Guest';
+            $nameForFile = preg_replace('/[^A-Za-z0-9_\- ]/', '', $nameForFile); // remove special chars
+            $nameForFile = str_replace(' ', '_', $nameForFile); // replace spaces with underscores
+            $nameForFile = trim($nameForFile); // remove trailing/leading whitespace
+
             $pdfPath = storage_path("app/public/tickets/{$nameForFile}.pdf");
 
             // Ensure directory exists
@@ -97,10 +102,9 @@ class TicketController extends Controller
             $pdf->save($pdfPath);
 
             // Update invite status
-            $invite->ticket_status = 'Ticket-generated'; // or 'Ticket Generated'
+            $invite->ticket_status = 'Ticket-generated';
             $invite->save();
         } catch (\Exception $e) {
-            // Log the error
             Log::error("Failed to create ticket for invite ID {$invite->id}: " . $e->getMessage());
         }
     }
