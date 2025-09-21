@@ -125,4 +125,82 @@ class TicketController extends Controller
 
         return "All ticket generation jobs have been dispatched!";
     }
+
+    // ==========================================QR Scanner ==========================================
+
+    public function scannerPage()
+    {
+        return view('scanner.index');
+    }
+
+    public function verifyQr(Request $request)
+    {
+        $qrCode = $request->input('qr_code');
+
+        $invite = Invite::where('qr_code', $qrCode)->first();
+
+        if (!$invite) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid QR Code']);
+        }
+
+        if ($invite->ticket_status === 'Scanned') {
+            return response()->json(['status' => 'error', 'message' => 'Ticket already used!']);
+        }
+
+        // Update status
+        $invite->ticket_status = 'Scanned';
+        $invite->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Valid ticket',
+            'data' => [
+                'name' => $invite->name ?? 'Guest',
+                'company' => $invite->company,
+                'number_of_invites' => $invite->number_of_invites,
+                'table' => $invite->table_no,
+                'contact' => $invite->contact,
+                'status' => $invite->ticket_status
+            ]
+        ]);
+    }
+
+    public function getInviteByQrCode($qr_code)
+    {
+        Log::info('QR Code Scanned: ' . $qr_code);
+        $invite = Invite::where('qr_code', $qr_code)->first();
+
+        if (!$invite) {
+            Log::error('Invalid QR Code: ' . $qr_code);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid QR Code'
+            ], 404);
+        }
+
+        if ($invite->ticket_status === 'Scanned') {
+            Log::warning('Ticket already used: ' . $qr_code);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ticket already used!'
+            ], 400);
+        }
+
+        $invite->ticket_status = 'Scanned';
+        $invite->save();
+
+        Log::info('Ticket scanned successfully: ' . $qr_code);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Valid ticket',
+            'data' => [
+                'name' => $invite->name ?? 'Guest',
+                'company' => $invite->company,
+                'number_of_invites' => $invite->number_of_invites,
+                'table' => $invite->table_no,
+                'contact' => $invite->contact,
+                'status' => $invite->ticket_status
+            ]
+        ], 200);
+    }
 }
