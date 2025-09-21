@@ -19,7 +19,8 @@ class TicketController extends Controller
         Storage::makeDirectory('public/qrcodes');
 
         // Get first 10 invites
-        $invites = Invite::whereBetween('id', [501, 580])->get();
+        // $invites = Invite::whereBetween('id', [719, 731])->get();
+        $invites = Invite::where('id', 70000)->get();
 
         foreach ($invites as $invite) {
             $this->generateQR($invite);
@@ -68,8 +69,8 @@ class TicketController extends Controller
     public function generateFirstTenTickets()
     {
         try {
-            // $invites = Invite::whereBetween('id', [571, 580])->get(); // first 10 for testing
-            $invites = Invite::where('id', 1)->get(); // first 10 for testing
+            $invites = Invite::whereBetween('id', [551, 580])->get(); // first 10 for testing
+            // $invites = Invite::where('id', 1)->get(); // first 10 for testing
 
             foreach ($invites as $invite) {
                 $this->createTicket($invite);
