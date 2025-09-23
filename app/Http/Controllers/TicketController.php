@@ -19,8 +19,8 @@ class TicketController extends Controller
         Storage::makeDirectory('public/qrcodes');
 
         // Get first 10 invites
-        // $invites = Invite::whereBetween('id', [719, 731])->get();
-        $invites = Invite::where('id', 70000)->get();
+        // $invites = Invite::whereBetween('id', [755, 761])->get();
+        $invites = Invite::where('id', 234445)->get();
 
         foreach ($invites as $invite) {
             $this->generateQR($invite);
@@ -167,32 +167,39 @@ class TicketController extends Controller
 
     public function getInviteByQrCode($qr_code)
     {
-        Log::info('QR Code Scanned: ' . $qr_code);
         $invite = Invite::where('qr_code', $qr_code)->first();
 
         if (!$invite) {
-            Log::error('Invalid QR Code: ' . $qr_code);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid QR Code'
             ], 404);
         }
 
-        if ($invite->ticket_status === 'Scanned') {
-            Log::warning('Ticket already used: ' . $qr_code);
+        if ($invite->scan_status === 1) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Ticket already used!'
             ], 400);
         }
 
-        $invite->ticket_status = 'Scanned';
+        $invite->scan_status = 1;
         $invite->save();
 
-        Log::info('Ticket scanned successfully: ' . $qr_code);
+        // ✅ Format phone number
+        $phone = preg_replace('/\D/', '', $invite->contact);
+        if (substr($phone, 0, 1) === "0") {
+            $phone = "94" . substr($phone, 1);
+        }
+
+        // ✅ Message with table number
+        $message = urlencode("Hello {$invite->name}, your ticket is valid ✅. Your table number is {$invite->table_no}.");
+        $whatsappUrl = "https://wa.me/{$phone}?text={$message}";
+
         return response()->json([
             'status' => 'success',
             'message' => 'Valid ticket',
+            'whatsapp_url' => $whatsappUrl,
             'data' => [
                 'name' => $invite->name ?? 'Guest',
                 'company' => $invite->company,
@@ -202,5 +209,16 @@ class TicketController extends Controller
                 'status' => $invite->ticket_status
             ]
         ], 200);
+    }
+
+    public function redirectToWhatsapp()
+    {
+        Log::info("Redirecting to WhatsApp...");
+        $phone = "947696622981";
+        $message = urlencode("Hello European Experts! I would like to book a service.");
+
+        $url = "https://api.whatsapp.com/send?phone={$phone}&text={$message}";
+
+        return redirect()->away($url);
     }
 }
