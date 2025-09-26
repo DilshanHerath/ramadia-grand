@@ -53,4 +53,9 @@ class InviteResource extends Resource
             'edit' => EditInvite::route('/{record}/edit'),
         ];
     }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
 }
