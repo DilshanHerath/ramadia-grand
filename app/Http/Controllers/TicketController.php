@@ -19,8 +19,8 @@ class TicketController extends Controller
         Storage::makeDirectory('public/qrcodes');
 
         // Get first 10 invites
-        // $invites = Invite::whereBetween('id', [755, 761])->get();
-        $invites = Invite::where('id', 234445)->get();
+        // $invites = Invite::whereBetween('id', [783, 789])->get();
+        $invites = Invite::where('id', 8500)->get();
 
         foreach ($invites as $invite) {
             $this->generateQR($invite);
@@ -160,7 +160,7 @@ class TicketController extends Controller
                 'number_of_invites' => $invite->number_of_invites,
                 'table' => $invite->table_no,
                 'contact' => $invite->contact,
-                'status' => $invite->ticket_status
+                'status' => $invite->scan_status
             ]
         ]);
     }
@@ -176,13 +176,23 @@ class TicketController extends Controller
             ], 404);
         }
 
-        if ($invite->scan_status === 1) {
+        // if already scanned, return details too
+        if ($invite->scan_status === '1') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Ticket already used!'
+                'message' => 'Ticket already used!',
+                'data' => [
+                    'name' => $invite->name ?? 'Guest',
+                    'company' => $invite->company,
+                    'number_of_invites' => $invite->number_of_invites,
+                    'table' => $invite->table_no,
+                    'contact' => $invite->contact,
+                    'status' => $invite->scan_status
+                ]
             ], 400);
         }
 
+        // ✅ mark as scanned
         $invite->scan_status = 1;
         $invite->save();
 
@@ -193,7 +203,12 @@ class TicketController extends Controller
         }
 
         // ✅ Message with table number
-        $message = urlencode("Hello {$invite->name}, your ticket is valid ✅. Your table number is {$invite->table_no}.");
+        $message = urlencode("
+🎉 You’ve successfully checked in to the Ramadia Grand Opening Ceremony!
+🪑 Your table number is *{$invite->table_no}*
+✨ We wish you a wonderful evening — please enjoy the celebration! ✨
+    ");
+
         $whatsappUrl = "https://wa.me/{$phone}?text={$message}";
 
         return response()->json([
@@ -206,11 +221,10 @@ class TicketController extends Controller
                 'number_of_invites' => $invite->number_of_invites,
                 'table' => $invite->table_no,
                 'contact' => $invite->contact,
-                'status' => $invite->ticket_status
+                'status' => $invite->scan_status
             ]
         ], 200);
     }
-
     public function redirectToWhatsapp()
     {
         Log::info("Redirecting to WhatsApp...");

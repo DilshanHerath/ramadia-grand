@@ -14,6 +14,6 @@ class Invite extends Model
         'email',
         'table_no',
         'qr_code',
-        'scan_status',
+        'scan_status', 
     ];
 }
